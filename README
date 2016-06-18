@@ -26,7 +26,7 @@ usbsoftrock is available from the softrock40 Yahoo Groups files area,
 under VK6JBL's directory (usbsoftrock-1.0.1.tar.gz).
 
 The best place to get dttsp source is:
-	https://www.cgran.org/cgran/projects/dttsp/branches/ab2kt/sdr-core
+	https://github.com/glenoverby/dttsp-sdr
 
 Please see the file "INSTALL" for build instructions.
 
