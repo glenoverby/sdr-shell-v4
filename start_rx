@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# define name used in the RMI registry
+NAME=SDR-SHELL
+export SDR_DEFRATE=48000
+export JACK_BUFFER=1024
+
+# start jackd (firewire fa-66)
+echo "starting jackd ..."
+#DELTA-44
+pasuspender -- /usr/bin/jackd -dalsa -dhw:0 -r$SDR_DEFRATE -p${JACK_BUFFER} -n3&
+
+sleep 5
+
+# start RX DttSP
+echo "starting DttSP ${NAME}_RX ..."
+/usr/local/bin/sdr-core --spectrum --metering --client-name=${NAME}_RX --buffsize=${JACK_BUFFER} --ringmult=4 --command-port=19001 --spectrum-port=19002 --meter-port=19003&
+
+sleep 5
+# connect receiver
+echo "connecting receiver ..."
+/usr/bin/jack_connect system:capture_1 ${NAME}_RX:il
+sleep 2
+/usr/bin/jack_connect system:capture_2 ${NAME}_RX:ir
+sleep 2
+/usr/bin/jack_connect ${NAME}_RX:ol system:playback_1
+sleep 2
+/usr/bin/jack_connect ${NAME}_RX:or system:playback_2
+sleep 2
+
+# start sdr-shell
+./sdr-shell&

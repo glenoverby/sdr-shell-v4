@@ -1,0 +1,115 @@
+Installation Instructions for sdr-shell-v4 branch.
+
+Distribution Specific Instructions
+
+Fedora 14
+
+(1) Install prerequisite packages with:
+
+	if fedora was installed from the live cd:
+	sudo yum install subversion autoconf gcc gcc-c++
+
+	sudo yum install libtool qt-devel liblo-devel hamlib-devel
+	sudo yum install jack-audio-connection-kit-devel 
+	sudo yum install jack-audio-connection-kit-example-clients
+	sudo yum install qjackctl alsa-util
+
+	depenencies for dttsp:
+		sudo yum install fftw-devel gsl-devel
+
+	dependencies for usbsoftrock:
+		sudo yum install libusb1-devel ncurses-devel
+
+(2) Run 'qmake-qt4' to build the Makefile, then 'make' to build sdr-shell.
+
+(3) Add yourself to the audio and jackusers groups in /etc/group.
+
+(4) Configure udev to set usbsoftrock permissions (see below)
+
+Ubuntu 10.10
+
+(1) From a live CD installation of Ubuntu, Xubuntu or lubuntu, install
+
+   Packages needed to build dttsp:
+	sudo apt-get install automake build-essential subversion 
+	sudo apt-get install libfftw3-dev jackd2 libjack-jackd2-dev
+	sudo apt-get install liblo-dev libgsl0-dev
+
+	When installing jack, answer 'yes' to the question about setting up
+	real-time priorities.
+
+   Packages needed to build usbsoftrock:
+	sudo apt-get install libusb++-dev libncurses5-dev
+
+   Packages needed to build sdr-shell:
+	sudo apt-get install qt4-qmake libqt4-dev 
+	sudo apt-get install libhamlib++-dev pkg-config 
+
+(2) Run 'qmake-qt4' to build the Makefile, then 'make' to build sdr-shell.
+
+(3) Add yourself to the audio and video groups in /etc/group.
+
+	sudo usermod -G audio -a <user>
+	sudo usermod -G video -a <user>
+
+(4) If you did not answer 'yes' to the jack installation question about
+real-time priorities, you may reconfigure it for real-time priorities with:
+
+	sudo dpkg-reconfigure -p high jackd
+
+(5) Configure udev to set usbsoftrock permissions (see below)
+
+All Linux Systems
+
+The following udev rules works well to allow the group softrock to use
+usbsoftrock without root privileges. You can put it in /etc/udev/rules.d
+and call it softrock.rules.
+
+Fedora 9:
+	BUS=="usb", ACTION=="add", SSSYSFS{idVendor}=="16c0", SYSFS{idProduct}=="05dc",
+	MODE="660", GROUP="softrock"
+
+Fedora 12+, openSUSE 11+, Ubuntu 9.10+ needs 
+	SUBSYSTEM=="usb", ACTION=="add", ATTR{idVendor}=="16c0",
+	ATTR{idProduct}=="05dc", MODE="0660", GROUP="admin", SYMLINK="softrock"
+
+the group "softrock" must exist in /etc/group, or substitute another group
+name.
+
+Use jack_metro, a metronome, to figure out which ports are your speakers, etc.
+
+
+Building for OSX 10.6 * not updated for qt4 *
+
+sdr-shell-v4 on OSX doesn't preserve the background of the spectrogram frame.
+
+When setting up to build for OSX, I wanted to use the fink and macports tools
+to get the prerequisite packages.  I had very limited success in getting usable
+prerequisites.  Both fink and macports build their packages in 32-bit (x86)
+mode, while the compiler default on 10.6 is now 64 bit (x86_64) mode.  In order
+to build against its packages requires setting:
+
+	PATH=/sw/var/lib/fink/path-prefix-10.6:$PATH
+
+Note that qt3mac from both package systems does not build on OSX 10.6 (it did
+build on 10.5) and there doesn't appear to be anyone working on it.  Instead, I
+selected 'qt3', which uses x11.
+
+In all, I believe these packages were for building dttsp and sdr-shell:
+  fink:
+	qt3
+  mac ports:
+ 	fftw-3 @3.2.2_0+i386 (active)
+	fftw-3-single @3.2.2_0+i386 (active)
+	gsl @1.13_1+darwin_i386 (active)
+
+The more packages were built from source using the instructions in:
+
+  http://groups.yahoo.com/group/dttsp-linux/files/build-dttsp.sh 
+
+I also had to build hamlib-1.2.9 (I recall having to do something ugly to
+hamlib to get it to compile -- it probably doesn't work).
+
+Get the JACK Audio Connection Kit from from jackosx.com.  I've never
+gotten the JACK in fink or macports to work.
+

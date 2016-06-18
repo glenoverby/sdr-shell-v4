@@ -1,0 +1,382 @@
+
+Version 4.25
+
+1. The NR, ANF and NB values were not being read from the config file.  The
+code that reads those from the saved configuration were deleted in svn #136.
+Restored.
+
+2. To deal with the usbsoftrock offset setup, I moved some code around.  I'm
+a bit uncertain if I'm breaking something here, but it runs okay.  I moved
+the getenv of SDR_DEFRATE into the main_widget constructor, and set the
+tuneCenter there.  I would also move getting SDR_HOST there, also, but I'm
+not too certain of what I would be getting into with that.
+
+3. Moved the setting of cfgTransmit->setChecked to after where all the
+command ports will be set up.
+
+4. Fixed the hScale related compile errors.
+
+5. I fixed the spectrogram area mouse scroll wheel tuning to be consistant
+with the way tuning in the spectrum and frequency display widgets.  It was
+backwards from the way the other windows operated.  Does anyone else use mouse
+wheel tuning?  I've been thinking of gutting a mouse to make a "big knob" out
+of the mouse wheel.
+
+6. Set maximum values for the NR LeakageSpinBox and NR_GainSpinBox to values
+that will keep dttsp from going mute and not coming out of it.
+
+7. Set the value and step of the ANF_Leakage to the dttsp default, which
+requires more digits (and tweeking of the GUI widget widths).
+
+
+Version 4.24
+
+Added command line options.
+
+Version 4.23
+
+Add revised PTT polling, by Alex Lee 9V1AL.
+
+To turn this on, edit
+sdr-shell.pro and remove the # (comment) character on the line that says:
+
+	DEFINES += PTT_POLL
+
+
+   Every 100ms or so, sdr-shell will check
+   the PTT state by sending a UDP message to the usbsoftrock daemon.  The message is a 
+   "get ptt".  You will need a patched version of usbsoftrock to enable "get ptt" to work.
+
+   With PTT polling, when an external
+   program, such the keyboard keyer, iambic keyer, or fldigi. to change the PTT state to Rx
+   or Tx, and sdr-shell will change state accordingly.  The 'center' frequency for Tx and the filter
+   limits may also be changed for CW Tx and flidigi Tx to ensure that the Rx dial freq is the same
+   (or very close to) the actual Tx RF out.
+
+Add FREQ polling, by Alex Lee 9V1AL.
+
+To turn this on, edit
+sdr-shell.pro and remove the # (comment) character on the line that says:
+
+	DEFINES += FREQ_POLL
+
+
+   Every 500ms or so, sdr-shell will check
+   the current "center" frequency of the softrock Si570 (which is usually Si570 freq / 4),
+   and updates the Rx frequency (and display) of sdr-shell accordingly.  This allows external
+   changes of the frequency, eg. by a rotary encoder attached to the Softrock/Mobo, to be
+   reflected automatically in sdr-shell.  There is no need to use a patched version of usbsoftrock,
+   as the "get freq" command is already available.
+
+
+Version 4.22
+
+Break out functions for turning TX on and off from toggle_TX(). 
+
+Turn TX off at start-up.  This mutes the transmit dttsp process, which 
+otherwise sends audio to the softrock which is in turn picked up as noise
+by the receive dttsp process.
+
+Fix up arguments to some of the commands.  Several formats had two %d
+strings but only one argument.
+
+Fix setTxIQGain and setTxIQPhase.  They were setting the receive IQ values.
+
+
+Version 4.21
+
+Add PTT polling code by Alex, 9V1AL.
+
+The PTT polling keeps sdr-shell up-to-date with other program that may
+be setting PTT on the USB Synthesizer.  Sdr-shell sets state for dttsp
+when it sees the PTT line change state.
+
+Reading the PTT state is only available in usbsoftrock for the MOBO.
+If used with usbsoftrock-1.0.1 this will not work due to a bug in
+usbsoftrock.  To make this compatible with all softrock boards, the setting
+of the PTT polling timer is done inside ofan #ifdef.  To turn this on, edit
+sdr-shell.pro and remove the # (comment) character on the line that says:
+
+	DEFINES += PTT_POLL
+
+
+Version 4.20
+
+Note: this change adds files and modified sdr-shell.pro.  You must rebuild
+your makefile with 'qmake-qt4'.
+
+This adds buttons to send arbitrary commands to DttSP.  There are eight "commands"
+buttons that are new in the window-bottom control frame.  Look in the DttSP Commands
+section of the README for details.
+
+Version 4.19
+
+Note: this change adds files and modified sdr-shell.pro.  You must rebuild
+your makefile with 'qmake-qt4'.
+
+ - Change the default frequency for bands and memories to 10mhz.
+
+ - change the mouse wheel to tune by 'tuneStep', which is the tuning step
+   selected by the up/down arrow keys for the tuning granularity of the
+   left/right arrow keys.
+
+   When tuning 1khz or less, the the dttsp oscillator is tuned until it hits
+   a size of the spectrum, at which time the oscillator is set to it's default
+   and usbsoftrock is called to retune the external oscillator.
+
+ - the mouse wheel tunes in the frequency display.  Position the pointer
+   over the digit to be tuned, and scroll the mouse wheel up or down to tune
+   at that step size.
+
+ - clicking on a digit in the frequency display sets the tuneStep size.  This
+   will be used by both the mouse wheel in the spectrum/spectogram frames as
+   well as the arrow keys.
+
+ - reversed the h and l keys.  Now the tune step moves left (higher) on h and
+   right (lower) on l.  I feel that this behaves more like vi, as the motion of
+   the step goes left with h and right with l.
+
+Version 4.18
+
+Fixes from Al, nh7o:
+
+ - setFilter_l() was not multiplying by step size
+
+ - the [ and ] keys did not move the filter when on LSB/CWL because of a range
+   check.  Removed the range check.
+
+Version 4.17
+
+Version number is now a number in main_widget.h
+
+- Turn on the 'filterLine' flag to put bandpass filter lines in the spectrogram
+  display.  This should be a config option.
+
+A Spectrum Display box on the Spectrum configuration tab that includes:
+-  Fill spectrum line.
+-  Spectrum Averaging
+  The spectrum display gets averaged of the past (n) values.  This makes it
+  smoother, possibly at the cost of lost detail.  Try 
+- Spectrum Scale
+  This is a start at being able to set the db scale of the spectrum display.
+  Right now the values are used only for setting a scale value against which to
+  plot the spectrum line.  I don't know how to calibrate the spectrum data from
+  dttsp to a dB scale.  When the scale is not 1.0, the db values and
+  spectrogram window are wrong.
+
+Version 4.16
+
+- Separate HELP window from Configuration (the config window still has help in it)
+
+- Incorporate user settable NR values for dttsp by Glenn VE9GJ
+
+- Make a separate configuration window for setting NR, NB and ANF values.  Bring it up by clicking the
+left mouse button (for right handed mice) on one of the NR NB or ANF widgets.
+
+- Make a widget for setting the zoom level, along the bottom of the window.
+
+- Change some menu bar colors around so it looks better.
+
+
+Version rxrx-14
+
+- Remove the fixed -sample-rate/4 tuning offset used when tuning with usbsoftrock.
+  The offset is now configurable (but not persistant across restart)
+
+- UDP command connections (for sdr-shell and usbsoftrock) can now go
+  to another computer, or from a virtual machine to the host.  Spectrum and
+  meter data must be sent back to the local host by some other means.
+  I attempted to do this with netcat, but was unsuccessful.  I ended up
+  writing a simple tunnel of my own (it's in the tools directory)
+
+To use:
+
+host:
+./tunnel1 19003 17003
+./tunnel1 19002 17002 
+ 
+remote:
+./tunnel2 otherside 17002 19002
+./tunnel2 otherside 17003 19003
+
+I put the name otherside in /etc/hosts.  This is the host side of the virtualbox
+
+- kubuntu spectrogram drawing.  I don't know why this was different on kubuntu,
+  but I changed the main widget's attributes from:
+
+    setAttribute( Qt::WA_OpaquePaintEvent, true);
+
+  to	
+
+    setAttribute( Qt::WA_NoSystemBackground, true);
+
+and it updates correctly.  It also updates correctly on Fedora9 and Ubuntu 10,
+but not on OSX with qt4-mac.  I could argue that the WA_OpaquePaintEvent
+attribute was wrong, since sdr-shell does NOT redraw the entire spectrogram
+on every update.
+
+				QT Version
+Kubuntu:			4:4.6.2-0ubuntu5
+Ubuntu 10.04.1 LTS:		4:4.6.2-0ubuntu5.1
+Fedora 9:			4.5.2
+OSX:				4.5.2-2 (qt4-mac)
+Fedora 13:			qt-x11-4.6.3-8.fc13.i686 
+
+
+Version rxtx-13
+
+The goal for this version is to restore the sdr-for-if v2d behavior.
+v2d has no ability to to tune the usbsoftrock (that feature was in v2e)
+so the arrow keys, mouse dragging in the spectrogram and clicking in
+the spectrum window all tune within the bandwidth of the sound card.
+
+This functionality is configured by turning off the "USBSoftrock"
+configuration setting (CFG -> General).
+
+Testing
+
+Set the SoftRock to a frequeny, then tune.
+
+Frequencies:
+	./usbsoftrock -vvv -a set freq 3.5815
+	(W1AW CW bulletins and morse code practice)
+
+	Open CFG window
+		Click off Use usbsoftrock via UDP
+		set LO Frequency to 3581500 (click Update)
+
+Tuning Operations
+	1. arrow keys (left, right).
+	   tune from one end of the sound card spectrom to the other
+	2. change the arrow key steps (up & down arrows), 
+	   use the left & right arrow keys to tune
+	3. click-and-drag in the spectrogram (buttons 1, 2, 3)
+	4. click in the spectrum.
+	   Click from one end to the other.
+	   Click on a signal to tune to it.
+
+With usbsoftrock -vvv set, make sure it does not get changed.
+Use usbsoftrock getfreq at the end to make sure it has not been changed.
+
+Version rxtx-12
+
+Revert all the changes to setRxFrequency made in rxtx-11.  This almost certainly
+breaks tuning when not using IF mode and not using USBSoftrock.
+
+Filter stuff:
+echo 'getSpectrumInfo' | nc -v -u localhost 19001
+
+CFG/General/Calibration:
+	Spectrum: 70  S-Meter: 40
+
+
+Version rxtx-11
+
+- fixed the IF mode that won't turn off.  This looks like some QT4 interactions
+that I don't understand.  I put the IF on/off button inside of a box inside the
+frame and now it works.
+
+- initialize cfg menus to saved values.  This affected the Spectrum type
+
+- fixed a bunch of spectrum type settings bugs.  FWIW there are other spectrum
+types that are not supported.
+
+- fixed the General / USBSoftrock Control settings so they are independent
+
+- save the 5/4 tuning (for 6m/2m converter) setting
+
+- vfo display no longer goes black when window loses focus
+
+- there is still a bug in the IF code where the frequency gets really messed up
+on startup.
+
+- I removed the RX and TX phase calibration.  I've seen many comments on this
+list saying that it doesn't really work anymore since that is automatic.
+
+- there was something buggy in the RX/TX and TX/RX switching.  I'm not sure of
+the details but the click button (click on RX widget) and T key now call the
+same function.  So, if they're broken they're at least broken in the same way.
+
+- there have been some improvements on tuning with the arrow keys when not using
+usbsoftrock for tuning ("rock bound" - the old crystal softrocks).  I'm sure that
+there are some bugs in this area.
+
+Version rxtx-5
+
+ - Several fixes to the "zoom out" display, and I now believe it is working
+   correctly.
+
+   One thing that can cause the spectrum and spectogram displays to look
+   odd is an artifact of how sdr-shell puts together the spectrum buffer.
+   The spectrum is centered on the oscillator frequency, which makes
+   displaying it simple.  However, if the Osc is set to 12000 hz above
+   zero (where tuning using an Si580 with a 48khz sound card) there is
+   only 1200hz of valid data above the center frequency.  Above that,
+   dttsp repeats the data, backwards.  The result is a display where
+   there appears to be a "mirror" on the right side of the window.
+
+   In this version, I draw a green line at where the data ends.
+
+ - Tuning changes.  Scroll wheel tuning now works in the spectrum portion
+   of the window, as well as in the spectrogram portion.  Clicking to
+   tune in the spectrogram display still does not work well, because
+   the two clicks have to be in almost exactly the same spot.  This is
+   because of the click-and-drag tuning feature.
+
+ - For packaging, I created an INSTALL and CHANGELOG.  Build instructions have
+   moved from README to INSTALL.
+
+Version rxtx-4
+Bug Fixes:
+ - Change version string to "rxtx.#", where I intend to bump the # on checkins
+ - make band switching remember the whole frequeny, not just the rx_delta_f
+
+Organization:
+ - moved all the frequency setting code to setRxFrequeny, which now takes an
+   argument of whether or not it should set a USBSoftrock
+ - remove various bits of dead code
+
+New Features:
+ - mouse scroll wheel tunes (shift, ctl and alt increase the tuning steps)
+   - includes logitech mice with "3d" scrolling (wheel tilts left/right)
+
+ - hooks for external programs: band switch, mode switch
+   Set the environment variables SDR_MODE and SDR_BAND to a program that
+   will be run when the mode is changed, either manually or as part of
+   recalling a memory.
+
+   I use the mode switch hook to connect a keyer to the TX-dttsp input.
+   As an optimization, if the mode does not change, the program is not
+   called, nor is a mode change sent to dttsp.  To force a change, use
+   shift-click on any of the mode buttons.
+   This required adding an argument to the VariModelabel mouseRelease() call.
+
+ - arrow keys can tune 10mhz & 100mhz
+
+ - set the TX dttsp to MUTE on receive.  This reduced the receive noise I was
+   getting dramaticly; however, when I hooked up a speaker to the TX Output
+   port on my sound card, I found that the microphone input was being passed
+   through so it's not really quiet.
+
+ - RIT and SPLIT tuning.  Neither are persistant across band switches or
+   program restart.  RIT is reset when tuning with the arrow keys is done
+   (tune only by dragging the mouse in the spectrogram display)
+
+   SPLIT is not saved when the program exits (yet).
+
+ - Config menu IQ: for the TX dttsp, added a gain setting for mic input.
+
+ - 5/4 tuning (setting is not persistant across program exits), useful for
+   tuning of dual-conversion softrocks, e.g. 144mhz to 28mhz
+
+New Features that Don't Entirely Work:
+ - scaling of the display: zoom out 1x, 2x or 4x
+   The goal was to permits seeing more or all of the spectrum on the screen
+   at once.  I did this by reducing the size of the spectrum buffer from 4096
+   to 2048 or 1024 (1/2 and 1/4) and making adjustments in the display code.
+
+   It only partly works.  I think the spectrogram display is wrong (it wraps)
+   and it's clear the spectrum display is wrong.
+
+   Use 1, 2, and 4 keys to set zoom (1x, 1/2x, 1/4x).
+

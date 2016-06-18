@@ -1,0 +1,91 @@
+Ideas for enhancements to sdr-shell
+
+- use a selection widget to select band by name
+
+- filter settings: error checking interferes with LSB filters
+
+apparently the setting of the filter using the keyboard when in LSB mode 
+has some error checking that makes it not work
+
+- click mouse button 3 on LCD to zero lower numbers.
+e.g. click on the 1xxxkhz value, and it goes to 1.000 khz.
+
+- use usbsoftrock via hamlib instead of a direct socket
+
+- reading of spectrogram color tables from a file.
+  nh7o has a lot of color tables.
+
+- band setting for "not a band" or something like that.
+Start-up frequency squashes band 1.
+  - alternatively, save the frequency in the band memory and save what band
+    was active on exit.
+
+- set output gain on RX dttsp to as low as possible, instead of muting.
+
+- nh7o
+
+*The waterfall type spectrogram used by most dsp programs at the moment is I
+think preferable. So is a colorized display, as it shows fading and signal
+strength with more visual immediacy.
+
+*The baseband spectrum would benefit from averaging. At the moment it is too
+jittery to show weak signals. It would also help to have the upper and lower
+dB points on the scale be user definable, and have the vertical area be a bit
+taller (or even adjustable). A smoother display would be easier on the eyes
+as well.
+
+- ab2kt
+(1) For spectrum colormap and other issues, have a look at snd:
+<https://ccrma.stanford.edu/software/snd/>
+
+(2) For visual identification of weak signals, think about adaptive
+histogram equalization on the sonogram itself:
+<http://en.wikipedia.org/wiki/Histogram_equalization>
+This stuff really works :-) and the running-update version of the
+algorithm is really cute, adding virtually nothing to the
+computational overhead.
+
+- ab2kt
+You know how most digimode programs have programmable buttons for text
+to transmit? I wonder whether having a bank of programmable buttons
+for controlling sdr-core might not be a good idea. Each button would
+have some associated editable text that would be sent verbatim as an
+update string to sdr-core. That way, not every controllable feature of
+sdr-core would need to be brought out to the front panel, but
+individual users could have their favorites available as button
+pushes.
+
+- kc0iyt
+
+Expanding on the above suggestion, it would be nice to make all of the
+hard-coded dttsp commands editable.  Additional commands would be useful for:
+
+ - rx-on, rx-off
+ - tx-on, tx-off
+ - program start-up, shut-down
+
+- w3sz
+So I would suggest that you also make FFT size selectable.  I settled on 
+262144 for the bin size I use for my really-weak-signal work with 192kHz 
+sampling rate, but I also included each power of 2 from 4096 up to that 
+value.  I would suggest that you do the same, if you haven't done so 
+already.  I selected 262144 as the size I use on the basis of much 
+testing and comparison of actual over-the-air and digitally saved very 
+weak EME and microwave signals.  Except for 160 Meter CW dx, you really 
+don't see similarly weak, challenging signals elsewhere.  I did NOT find 
+this large FFT size [262144] to be ANY problem in terms of CPU 
+utilization, etc.  I did not try values higher than 262144 because I 
+found that when using it combined with the Linrad palette I could 
+without fail always see on the waterfall CW signals very much below the 
+level at which they could be 'copied'.  Of course, if you are sampling 
+at a much lower rate [and thus limiting your waterfall bandwidth], you 
+don't need these larger FFT sizes.  But at microwave frequencies you 
+need both the bandwidth AND the weak signal detection abilities to make 
+contacts with stations who often have little idea of their actual 
+frequency and who are running only milliwatts of power under conditions 
+where the path losses are extreme, even if you yourself are GPS-locked 
+and have high-gain antennas and high gain/low noise receive preamps and 
+front ends.
+
+ -- The FFT is in dttsp.  I don't know where to set that.
+

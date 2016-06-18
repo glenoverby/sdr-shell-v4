@@ -1,0 +1,267 @@
+
+Getting started using SDR-Shell with the SoftRock RXTX 6.3
+
+sdr-shell is a graphical user interface for interfacing with the DttSP
+(sdr-core) software-defined radio (SDR).  It can use two sdr-core
+processes, one each for receive and transmit, and usbsoftrock for tuning
+the USB-controllable synthesizer on the SoftRock SDR.
+
+Getting a radio working with sdr-shell, dttsp, and utilities is a lot like
+building your own radio, but with less solder.  Instead of solder wick and
+a solder sucker, you have a reset button.
+
+For information about the SoftRock SDR, see:
+
+	http://www.kb9yig.com		The designer's site
+	http://www.wb5rvz.com/sdr	Build instructions
+	softrock40@yahoogroups.com	Soft Rock discussion group 
+					(Very active)
+	dttsp-linux@yahoogroups.com	the dttsp discussion group
+
+sdr-shell requires:
+  dttsp (two copies: one recieve one transmit)
+  usbsoftrock 1.0.1
+
+usbsoftrock is available from the softrock40 Yahoo Groups files area,
+under VK6JBL's directory (usbsoftrock-1.0.1.tar.gz).
+
+The best place to get dttsp source is:
+	https://www.cgran.org/cgran/projects/dttsp/branches/ab2kt/sdr-core
+
+Please see the file "INSTALL" for build instructions.
+
+Running on Linux
+
+The shell script 'start-delta44' will start jackd, usbsoftrock and sdr-shell.
+You will need to adjust the settings in that script for your si570 oscillator
+(usbsoftrock -x *value*), and your sound card's ports.
+
+
+to send commands to the dttsp command port, use:
+  nc -v -u localhost 19001
+
+Delta-44 card owners: Use 'envy24control' to set the card's hardware settings.
+Under Analog Volume, I set everything to maximum.
+ (Fedora: alsa-tools, Ubuntu: alsa-tools-gui)
+
+qjackctl is a graphical configuration/connection program for the JACK Audio
+Connection Kit.
+ (Fedora: qjackctl)
+
+
+Running on OSX
+
+I am running on a Macbook Pro (2009 vintage) with a Creative Audigy USB audio
+adapter.  It has 5+1 output and a Line/Mic input.  This adapter has given me
+some problems: it always requires power cycling following the mac going to
+sleep, but has been adequate for occasional use.  With four output channels
+and 2 input channels in 24-bit mode, I can only use it for 4800 kHz of spectrum.
+With usbsoftrock and the way sdr-shell displays spectrum this been adequate
+for me.
+
+1) increase the maximum UDP datagram size:
+	sudo sysctl -w net.inet.udp.maxdgram=32768
+
+2)   start the audio midi tool (Applications -> Utilities Audio MIDI Setup)
+   create an aggregate device consisting of:
+	audio output
+	I/Q output
+	I/Q input
+	audio input (I use the microphone)
+   set each to a 48khz input rate.
+
+   deselect the 'thru' selection of the external line connector input source
+ 
+
+3) start jackd using JackPilot.  I've never gotten jackd to start from
+   the command-line due to problems finding shared libraries.
+
+  Configuration:
+      Jack Server
+	Driver: coreaudio
+	Interface: Aggregate Device
+	Sample Rate: 4800
+	Buffer Size: 2048
+	Interface Output Channels: 4
+	Interface Input Channels: 4
+
+      Jack Router
+	Virtual Input Channels: 4
+	Virtual Output Channels: 4
+	Auto Connect with physical ports: 4
+
+If you find a way to start jack and midi tool from a shell script, please
+post your solution!
+
+4) start usbsoftrock, dttsp and sdr-shell:
+
+start-audigy.sh
+
+
+Use Notes
+
+     Clicking the 'rx' symbol switches from receive to transmit and changes the
+symbol to tx.  Clicking the 'tx' symbol turns transmit off.
+
+     The receive dttsp is muted during transmit.  I found it unnerving to talk
+while hearing myself echoed back with a 1/2 second delay.
+
+     Bands are memories (there are ten of them) that are automatically saved when
+a band change occurs.  Bands wrap from ten to one going up, and from one to ten
+when going down.
+
+	Tuning:
+
+	Tuning is done on two levels: within the bandwidth of the audio card,
+and by using a programmable oscillator.  For example, the recent SoftRock
+SDRs use an Si570 synthesized oscillator that can be configured over USB.
+This is enabled when the "Use usbsoftrock" option is selected (General
+Configuration tab), sdr-shell communicates with the usbsoftrock program
+which in turn communicates with the USB-based controller.
+
+If sdr-shell is configured to monitor the IF of another radio, it can
+communicate with the radio using hamblib to display the radio's frequency.
+It can also set it.  These options are on the IF Configuration tab.
+No better description is available; experiment with it.
+
+The largest granularity tuning is done using the arrow keys.  The left/right
+arrow keys tune up or down, with the step size selected by the up/down
+arrow keys.  There is a highlighted bar under the frequency display that
+indicates the step size. (This always sets the external oscillator).
+When using the usbsoftrock, this permits tuning anywhere that the SDR is
+capable of tuning.
+
+Positioning the mouse cursor over one of the numbers in the frequency display
+and using the scroll wheel, the SDR can be tuned by that granularity.  If it
+is 1khz, or less, tuning with the DttSP oscillator is done, and this will tune
+past the edge of the sound card by retuning usbsoftrock.  Clicking on one of
+the numbers sets the tuning step size for the mouse wheel and arrow keys to
+that value.
+
+By clicking one of the mouse buttons and dragging the cursor in the
+spectrogram window, tuning on a finger granularity of 1hz, 10hz or 100hz
+for the left, right and middle buttons, respectively.  However, this is
+limited to tuning only the dttsp "Oscillator".
+
+The mouse scroll wheel tunes by the step size underlined on the frequency
+display.
+
+By clicking in the spectrum window, sdr-shell tunes to center the frequency
+at the mouse pointer in the center of the filter.
+
+When usbsoftrock mode is selected, the dttsp Oscillator frequency is set to
+be half-way between DC and the upper end of the audio card's bandwidth.
+This keeps signals out of the muddy area near DC.  This value can be
+changed on the General Configuration tab.
+
+	Arbitrary DttSP commands
+
+With the huge number of features available in dttsp, it it a big job to
+create a GUI to operate on all of them.  Instead, 8 arbitrary commands are
+available.  These are labeled "C0" - "C8" along the bottom of the display.
+Each can hold two command strings: one to send to turn on and another to
+send to turn off.  If there is no off command, then only the on command
+is sent.  Left-click on the C# label to toggle, and bring up the configure
+window by right-clicking on any of the labels.
+
+Example:
+	Name:   NR2
+	On:     setSDROM 1
+	Off:    setSDROM 0
+	send to RX DttSP
+
+click Accept.  The C0 label will change to NR2 and further clicks on the label will
+send the setSDROM command.
+
+Multiple commands can be sent at once by separating the commands with a semicolon
+(resemblance to shell commands is purely cosmetic):
+
+	Name:   NR2
+	On:     setSDROM 1;setSDROMvals 2.5
+	Off:    setSDROM 0
+	send to RX DttSP
+
+the default SDROM threshold happens to be 2.5.
+
+
+     I set the dttsp transmit gain to about 15-18 to get maximum power
+out of my RXTX.
+
+     Configuration between runs is written to the file using the normal QT
+mechanisms.  The file is:
+	.config/freesoftware/sdr-shell.conf
+
+Keyboard Commands
+	t	toggle transmit on/off
+	space	turn transmit off
+U	set_filer_l -1
+I	set_filer_l +1
+O	set_filter_h -1
+P	set_filter_h +1
+[	filter[lh] -= step
+]	filter[lh] += step
+q	iqGain--
+w	iqGain++
+e	iqPhase--
+r	iqPhase++
+z	specAperatureLow--
+x	specAperatureLow++
+c	specAperatureHigh--
+v	specAperatureHigh++
+
+h	up arrow
+j	left arrow
+k	right arrow
+l	down arrow
+
+
+
+Miscellaneous
+
+
+Two Cards
+I have, as a test, used two audio cards on Linux with dttsp, by running two
+copies of jack:
+
+   default jackd instance:
+   /usr/bin/jackd -R -P55 -p128 -t2000 -dalsa -r48000 -D -Chw:2 -Phw:0 -s&
+   start the receive dttsp
+
+   second jackd instance:
+   export JACK_DEFAULT_SERVER=tx
+   /usr/bin/jackd -R -P55 -p128 -t2000 -dalsa -r48000 -D -Chw:0 -Phw:2 -s&
+   start the transmit dttsp
+
+
+I/Q Input on Speakers
+
+If your audio output is on the same audio card as the I/Q input, you'll likely
+hear some of the I/Q passed through.
+
+To mute line input:
+	amixer -c 0 controls
+look for
+	numid=18,iface=MIXER,name='Line Playback Switch'
+
+run:
+	amixer -c 0 cset numid=18 0
+
+To change the input source:
+
+	amixer controls
+
+look for Capture Source
+
+	amixer -c 0 cset numid=26 0     # set to mic
+	amixer -c 0 cset numid=26 4     # set to line
+
+I built the dttsp keyers with:
+	gcc -g -O2 -I . -c keyboard-keyer.c
+	gcc -g -O2 -I . -c iambic-keyer.c
+	gcc  -g -O2   -o keyboard-keyer keyboard-keyer.o  libDttSP.a -llo \
+		-lpthread -lm -ljack -lfftw3f
+	gcc  -g -O2   -o iambic-keyer iambic-keyer.o  libDttSP.a -llo \
+		-lpthread -lm -ljack -lfftw3f
+
+Glen Overby, kc0iyt  gpoverby@gmail.com  January, 2011
+

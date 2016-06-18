@@ -1,0 +1,60 @@
+#!/bin/sh
+
+#
+# Establish JACK connections for CW and PHONE modes
+#
+
+mode=$1
+echo set_mode_hook: mode $mode
+
+phil=system:capture_3
+phir=system:capture_4
+#read phil phir < .phinput
+echo phone: il= $phil  ir= $phir
+
+cwil=kkyr:ol
+cwir=kkyr:or
+#read cwil cwir < .cwinput
+echo cw: il= $cwil  ir= $cwir
+
+case $mode in
+CW )
+	echo CW Mode
+	set -x
+	jack_disconnect $phil sdr-tx:il
+	jack_disconnect $phir sdr-tx:ir
+	jack_connect $cwil sdr-tx:il        
+	jack_connect $cwir sdr-tx:ir
+	#jack_connect system:capture_3 sdr-tx:il        
+	#jack_connect system:capture_4 sdr-tx:ir
+	set +x
+;;
+
+METRO )
+	echo METRONOME Mode
+	set -x
+	jack_metro -b 60 &
+	jack_disconnect $phil sdr-tx:il
+	jack_disconnect $phir sdr-tx:ir
+	jack_disconnect $cwil sdr-tx:il
+	jack_disconnect $cwir sdr-tx:ir
+	jack_connect metro:60_bpm sdr-tx:il        
+	jack_connect metro:60_bpm sdr-tx:ir
+	#jack_connect system:capture_3 sdr-tx:il        
+	#jack_connect system:capture_4 sdr-tx:ir
+	set +x
+;;
+
+* )
+	echo PHONE Mode
+	set -x
+	jack_disconnect $cwil sdr-tx:il
+	jack_disconnect $cwir sdr-tx:ir
+	jack_disconnect metro:60_bpm sdr-tx:il
+	jack_disconnect metro:60_bpm sdr-tx:ir
+	jack_connect $phil sdr-tx:il        
+	jack_connect $phir sdr-tx:ir
+	set +x
+;;
+esac
+
