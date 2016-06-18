@@ -41,6 +41,7 @@
 #include <QVBoxLayout>
 #include <QComboBox>
 
+#include <unistd.h>
 #include <time.h>
 #include <sys/timeb.h>
 
