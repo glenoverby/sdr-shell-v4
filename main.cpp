@@ -32,7 +32,7 @@ int main (int argc, char **argv)
     Main_Widget* w = new Main_Widget;
 
     // Iterate over options and handle each one as appropriate
-    char c;
+    int c;
     // The function getopt_long stores the option index here.
     int option_index = 0;
 
