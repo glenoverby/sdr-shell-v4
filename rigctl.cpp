@@ -136,6 +136,8 @@ void RigCtlSocket::readyRead() {
 		out << "0x0\n";
 		out << "0\n";
 		output = true;
+    } else if (command == "\\chk_vfo") {
+        out << "CHKVFO 0\n";
 	} else {
 		fprintf(stderr, "rigctl: unknown command \"%s\"\n",
 		        command.constData());
