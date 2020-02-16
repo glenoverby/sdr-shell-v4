@@ -90,6 +90,8 @@ void RigCtlSocket::readyRead() {
 	} else if (command[0] == 'T') { // set_ptt
 		int enabled = command.mid(space + 1).toInt();
 		main->rigSetPTT(enabled);
+	} else if (command[0] == 't') { // get PTT
+		out << main->rigGetPTT() << "\n";
 	} else if (command[0] == 'q') { // quit
 		conn->close();
 		return;

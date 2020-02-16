@@ -430,6 +430,7 @@ class Main_Widget : public QWidget
                 unsigned long long int rigGetFrequency();
                 void rigSetFrequency(unsigned long long int rigctlfreq);
                 void rigSetPTT ( int );
+                int rigGetPTT ();
 
 	public slots:
 		void finish();

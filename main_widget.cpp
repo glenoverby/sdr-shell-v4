@@ -4780,3 +4780,7 @@ void Main_Widget::rigSetPTT ( int enabled ) {
 		toggle_TX( enabled );
 	}
 }
+
+int Main_Widget::rigGetPTT ( ) {
+	return( transmit );
+}
